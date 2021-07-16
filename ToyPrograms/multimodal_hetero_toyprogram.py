@@ -35,7 +35,7 @@ class MultimodalHeteroToy():
         mean = torch.linspace(-1, 1, M + 2)[1:-1]
         mean = torch.stack([(mean[m] + (mean[m] * L * X)).squeeze()
                            for m in range(M)])
-        std = X ** 2
+        std = X ** 2 * 2
         var = torch.normal(mean=torch.zeros(N), std=std).diag()
         Y = mean + var
 

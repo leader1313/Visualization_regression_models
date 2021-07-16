@@ -9,7 +9,7 @@ import re
 
 
 class VideoMaker():
-    def __init__(self, model=object, video_name='video_name'):
+    def __init__(self, model=object, G=None, video_name='video_name'):
         now = datetime.now(timezone(timedelta(hours=9)))
         yd_string = now.strftime('%Y%m%d')
         time_string = now.strftime('%H%M%S')
@@ -23,16 +23,18 @@ class VideoMaker():
 
         self.file_name = time_string
         self.model = model
+        self.G = G
 
     # snapshots from learning process -------
 
-    def snap_shot(self, step, filling=False):
+    def snap_shot(self, step, filling=False, ground_truth=False):
         plt.style.use("ggplot")
+        if ground_truth:
+            self.G()
+
         X_train, Y_train = self.model.X, self.model.Y
         xx = torch.linspace(X_train.min(), X_train.max(),
                             steps=100).unsqueeze(1)
-        # xx = np.linspace(min(X_train), max(X_train), 100)
-        # xx = torch.from_numpy(xx).float()
         try:
             # homoscedastic
             mm, vv = self.model.predict(xx)
@@ -44,7 +46,7 @@ class VideoMaker():
             noise = torch.sqrt(ygvar)
         ss = torch.sqrt(vv)
 
-        plt.scatter(X_train, Y_train, marker="*", s=100)
+        plt.scatter(X_train, Y_train, marker="*", s=100, c='tomato')
         plt.xlim(min(X_train), max(X_train))
         plt.ylim(min(Y_train), max(Y_train))
         plt.xticks(fontsize=0)
@@ -53,13 +55,6 @@ class VideoMaker():
         for m in range(self.model.M):
             line = plt.plot(xx, mm[m])
             if filling:
-                # plt.fill_between(
-                #     xx.squeeze(),
-                # mm[m, :, 0] + ss[m, 0],
-                # mm[m, :, 0] - ss[m, 0],
-                #     color=line[0].get_color(),
-                #     alpha=0.1,
-                # )
                 plt.fill_between(
                     xx.squeeze(),
                     mm[m, :, 0] + noise.squeeze(),
@@ -72,15 +67,18 @@ class VideoMaker():
         plt.clf()
 
     def make_figs(self, max_n=10):
-        self.snap_shot(0, filling=True)
+        plt.scatter(self.model.X, self.model.Y, marker="*", s=100, c='Tomato')
+        plt.savefig(self.figure_dir + 'frame' + str(0))
+        plt.clf()
+        self.snap_shot(1, filling=True, ground_truth=False)
         for i in range(max_n):
             self.model.learning(max_iter=1)
-            self.snap_shot(i + 1, filling=True)
+            self.snap_shot(i + 2, filling=True, ground_truth=False)
             done = int(i / (max_n - 1) * 10)
             bar = u"\u2588" * done + ' ' * (10 - done)
             per = (i + 1) * 100 / max_n
             print('\r[{}] {} %'.format(bar, per), end='')
-        self.snap_shot(max_n + 1, filling=True)
+        self.snap_shot(max_n + 1, filling=True, ground_truth=False)
 
     # figures to video ----------------------
     def tryint(self, s):
