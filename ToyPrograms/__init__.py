@@ -1,1 +1,1 @@
-from hetero_multimodal_toyprogram import HeteroMultimodalToy
+from ToyPrograms.multimodal_hetero_toyprogram import MultimodalHeteroToy

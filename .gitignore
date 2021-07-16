@@ -1,3 +1,6 @@
 *.pt
 .vscode/*
 *.pyc
+*.png
+.DS_Store
+*.mp4

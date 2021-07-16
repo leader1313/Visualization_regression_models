@@ -1,36 +1,41 @@
+from kernel import GaussianKernel
+from IOMHGP import IOMHGP
 import matplotlib.pyplot as plt
 import torch
 import numpy as np
 
 
-class HeteroMultimodalToy():
-    def __init__(self):
-        # Make toy dataset
-        N = 100  # number of data set
-        M = 2  # number of modality
-        self.X_train = torch.linspace(0, np.pi * 2, N)[:, None]
-        self.Y_train, self.mm_true, self.ss_true = self.true(self.X_train, M=M)
+# plt.style.use("ggplot")
 
-    def true(self, X, M=2):
-        N = X.shape[0]
-        mean = torch.linspace(-1, 1, M + 2)[1:-1]
-        mean = torch.stack([(3 * X * mean[m] + torch.cos(X)).squeeze()
-                            for m in range(M)])
-        # std = 1-((X-np.pi)/np.pi) ** 2
-        std = torch.sin(X * 1.5) ** 2 * 50
-        var = torch.normal(mean=torch.zeros(N), std=std).diag()
-        var /= var.max()
-        Y = mean + var
+# Make toy dataset
+N = 100
+X_train = torch.linspace(0, np.pi * 2, N)[:, None]
+M = 2
 
-        # normalize
-        mean *= (1 / Y.abs().max(1)[0]).repeat(N, 1).T
-        std /= std.max()
-        std = std.squeeze() * (1 / Y.abs().max(1)[0]).repeat(N, 1).T
-        Y *= (1 / Y.abs().max(1)[0]).repeat(N, 1).T
-
-        return Y, mean, std
+# Ground truth------------------------------
 
 
+def true(X, M=2):
+    N = X.shape[0]
+    mean = torch.linspace(-1, 1, M + 2)[1:-1]
+    mean = torch.stack([(3 * X * mean[m] + torch.cos(X)).squeeze()
+                       for m in range(M)])
+    # std = 1-((X-np.pi)/np.pi) ** 2
+    std = torch.sin(X * 1.5) ** 2
+    var = torch.normal(mean=torch.zeros(N), std=std).diag()
+    # var /= var.max()
+    Y = mean + var
+
+    # normalize
+    mean *= (1 / Y.abs().max(1)[0]).repeat(N, 1).T
+    # std /= std.max()
+    std = std.squeeze() * (1 / Y.abs().max(1)[0]).repeat(N, 1).T
+    Y *= (1 / Y.abs().max(1)[0]).repeat(N, 1).T
+
+    return Y, mean, std
+
+
+Y_train, mm_true, ss_true = true(X_train, M=M)
 for m in range(M):
     sca = plt.scatter(X_train, Y_train[m], marker="+", s=50, c='orange')
     line = plt.plot(X_train, mm_true[m], color='black', linewidth=2)

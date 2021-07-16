@@ -33,6 +33,7 @@ class IOMHGP:
         self.N, self.D = self.Y.shape
         self.M = M
 
+        self.MVB = 1e9
         self.p_mixture_thresh = self.N * (1 / self.M) * 0.1
         self.p_instance_thresh = 1e-4
         # Hyperparameters Initialization
@@ -86,6 +87,10 @@ class IOMHGP:
             "mu0": self.mu0,
             "v_beta_0": self.v_beta_0,
         }
+        self.expectation(max_iter=30)
+        # self.update_q_g()
+        # self.Marginalized_Variational_Bound()
+        self.maximization(max_iter=10, type2_l=True, type2_h=True)
 
     def precomputation(self, batch_ind=None):
         if batch_ind is None:
@@ -385,7 +390,7 @@ class IOMHGP:
         self.gkern.LengthScales = checkPoint["gkern"][0]
         fkerns = checkPoint["fkerns"]
         for m in range(self.M):
-            self.fkern[m].LengthScales = fkerns[m][0]
+            self.fkern[m].LengthScales = fkerns[m]
         return checkPoint
 
     def show_hyperparameters(self):
@@ -468,20 +473,20 @@ class IOMHGP:
 
         while (step < max_iter) and not (stop_flag):
             step += 1
-            print("=========================")
-            print("E step")
+            # print("=========================")
+            # print("E step")
             self.expectation(max_iter=30)
-            print("M step")
+            # print("M step")
             self.maximization(max_iter=10, type2_l=True, type2_h=True)
             # self.maximization(max_iter=100, n_batch=10,
             #                   type2_l=True, type2_h=True)
             # type-2 likelihood ----------
             # self.maximization(max_iter=3, type2_h=True)
-            self.show_hyperparameters()
+            # self.show_hyperparameters()
             temp_bound = self.Marginalized_Variational_Bound()
 
-            print(step, " th Marginalized VB : ", temp_bound)
-            print("Z : ", self.q_z_pi.sum(axis=1))
+            # print(step, " th Marginalized VB : ", temp_bound)
+            # print("Z : ", self.q_z_pi.sum(axis=1))
 
             if NL > temp_bound:
                 patient_count = 0
@@ -490,8 +495,8 @@ class IOMHGP:
 
             else:
                 patient_count += 1
-                print("-------Patient_Count(< %i) : %i" %
-                      (Max_patient, patient_count))
+                # print("-------Patient_Count(< %i) : %i" %
+                #       (Max_patient, patient_count))
                 if patient_count >= Max_patient:
                     stop_flag = True
                 # import ipdb
@@ -499,7 +504,7 @@ class IOMHGP:
 
         self.load_checkpoint()
 
-        print(self.q_z_pi.sum(axis=1))
+        # print(self.q_z_pi.sum(axis=1))
         m_ind = self.q_z_pi.sum(axis=1) > self.p_mixture_thresh
         N_Mixture = m_ind.sum()
 
@@ -524,8 +529,8 @@ class IOMHGP:
         )
         self.M = N_Mixture
         self.precomputation()
-        print("-------------------------------------------")
-        print("Number of Mixture : %i" % (N_Mixture))
+        # print("-------------------------------------------")
+        # print("Number of Mixture : %i" % (N_Mixture))
 
     def predict(self, x):
         """
@@ -564,7 +569,7 @@ class IOMHGP:
         ygvar = torch.exp(gmean + diagSigmatst * 0.5)
         yvar = diagCtst + ygvar
 
-        return ymean, yvar, ygvar
+        return ymean.detach(), yvar.detach(), ygvar.detach()
 
 
 if __name__ == "__main__":
