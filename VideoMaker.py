@@ -15,7 +15,7 @@ class VideoMaker():
         time_string = now.strftime('%H%M%S')
         dir_ID = video_name + '/' + yd_string
         self.figure_dir = 'Figures/' + dir_ID + '/' + time_string + '/'
-        self.video_dir = 'Videos/' + dir_ID
+        self.video_dir = 'Videos/' + dir_ID + '/'
         dirs = {'fig': self.figure_dir, 'video': self.video_dir}
         for key in dirs:
             if not os.path.exists(dirs[key]):
