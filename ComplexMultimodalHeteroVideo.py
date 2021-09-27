@@ -44,6 +44,6 @@ class ComplexMultimodalHeteroVideo():
 
 
 if __name__ == "__main__":
-    for _ in range(10):
+    for _ in range(5):
         CMHV = ComplexMultimodalHeteroVideo()
         CMHV.making_video()

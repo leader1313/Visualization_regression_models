@@ -46,17 +46,17 @@ class VideoMaker():
             noise = torch.sqrt(ygvar)
         ss = torch.sqrt(vv)
 
-        # plt.scatter(X_train, Y_train, marker="*", s=100, c='tomato')
+        plt.scatter(X_train, Y_train, marker="*", s=100, c='tomato')
         plt.xlim(min(X_train), max(X_train))
         plt.ylim(min(Y_train), max(Y_train))
         plt.xticks(fontsize=0)
         plt.yticks(fontsize=0)
 
         for m in range(self.model.M):
-            line = plt.plot(xx, mm[m])
+            line = plt.plot(xx, mm[m], color='black')
             label = (self.model.q_z_pi >= 0.5)[m]
-            sca = plt.scatter(X_train[label], Y_train[label], marker="*",
-                              s=100, c=line[0].get_color())
+            # sca = plt.scatter(X_train[label], Y_train[label], marker="*",
+            #                   s=100, c=line[0].get_color())
             if filling:
                 plt.fill_between(
                     xx.squeeze(),
@@ -66,7 +66,7 @@ class VideoMaker():
                     alpha=0.2,
                     hatch="\\",
                 )
-        plt.savefig(self.figure_dir + 'frame' + str(step))
+        plt.savefig(self.figure_dir + 'frame' + str(step), transparent=True)
         plt.clf()
 
     def make_figs(self, max_n=10):
